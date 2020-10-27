@@ -15,6 +15,7 @@ export default {
   'menu.exception.404': '404',
   'menu.exception.500': '500',
   'menu.form': 'Form',
+  'menu.todos': 'Todo List',
   'menu.form.basic-form': 'Basic Form',
   'menu.form.step-form': 'Step Form',
   'menu.form.step-form.info': 'Step Form(write transfer information)',

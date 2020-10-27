@@ -36,23 +36,10 @@ export default defineConfig({
           authority: ['admin', 'user'],
           routes: [
             {
-              path: '/form',
+              path: '/todos',
               icon: 'form',
-              name: 'form',
-              component: './form/step-form',
-              // routes: [
-              //   {
-              //     name: 'step-form',
-              //     path: '/',
-              //     component: './form/step-form',
-              //   },
-              //   // {
-              //   //   name: 'step-form',
-              //   //   icon: 'smile',
-              //   //   path: '/form/step-form',
-              //   //   component: './form/step-form',
-              //   // },
-              // ],
+              name: 'todos',
+              component: './todoList',
             },
           ],
         },
