@@ -1,15 +1,26 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import { connect } from 'umi';
 import { notification, Checkbox, List, Button } from 'antd';
+import { ConnectState } from '@/models/connect';
+import { TodoModelState } from '@/models/todo';
 import { CloseOutlined } from '@ant-design/icons';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import { TodoListItem } from '@/pages/todoList/data';
+import { Dispatch } from 'dva';
 
-interface ITodoListProps {}
-
-interface ITodoListState {
-  todos: object[];
+interface ITodoListProps extends TodoModelState {
+  fetchTodoList(): void;
+  fetchAddTodo(todoItem: TodoListItem): void;
+  fetchUpdateTodo(todoItem: TodoListItem): void;
+  fetchRemoveTodo(ids: number[]): void;
 }
 
-const Box = styled.div<{ bgColor: string }>`
+interface ITodoListState {
+  text: string;
+}
+
+const Box = styled.div<{ bgColor?: string }>`
   width: 100%;
   height: 100%;
   margin: 0;
@@ -71,21 +82,33 @@ const TodoItem = styled.div`
   }
 `;
 
+const TodoHeader = styled.div`
+  > div {
+    display: flex;
+    > div {
+      margin-right: 10px;
+    }
+  }
+`;
+
 class TodoList extends Component<ITodoListProps, ITodoListState> {
-  constructor(props) {
+  constructor(props: ITodoListProps) {
     super(props);
 
     this.state = {
-      todos: [{ text: '기본', complete: true }],
       text: '',
     };
 
-    this.handleTodoAdd = this.handleTodoAdd.bind(this);
+    this.handleAddTodo = this.handleAddTodo.bind(this);
     this.handleChangeValue = this.handleChangeValue.bind(this);
     this.handleChangeTodo = this.handleChangeTodo.bind(this);
   }
 
-  private handleTodoAdd() {
+  componentDidMount() {
+    this.props.fetchTodoList();
+  }
+
+  private async handleAddTodo() {
     if (!this.state.text) {
       notification.error({
         description: '입력된 내용이 없음.',
@@ -93,54 +116,66 @@ class TodoList extends Component<ITodoListProps, ITodoListState> {
       });
       return;
     }
-    const nextState = {
-      todos: [...this.state.todos, { text: this.state.text, complete: false }],
-      text: '',
-    };
-    this.setState(nextState);
+    const { fetchAddTodo } = this.props;
+    const addTodo = { text: this.state.text, complete: false };
+    await fetchAddTodo(addTodo);
+
+    this.setState({ text: '' });
   }
 
-  private handleChangeValue(e: InputEvent) {
+  private handleChangeValue(e: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
       text: e.target.value,
     });
   }
 
-  private handleChangeTodo(e: inputEvent, todoIndex: number) {
-    const copyTodos = this.state.todos.slice();
-    const nextTodos = copyTodos.map((item, i) => {
-      return todoIndex === i ? { ...item, complete: e.target.checked } : item;
-    });
-    this.setState({ todos: nextTodos });
+  private handleChangeTodo(e: CheckboxChangeEvent, item: TodoListItem) {
+    const nextItem = { ...item };
+    nextItem.complete = e.target.checked;
+    this.props.fetchUpdateTodo(nextItem);
   }
 
-  private handleRemoveTodo(todoIndex: number) {
-    const copyTodos = this.state.todos.slice();
-    const nextTodos = copyTodos.filter((_, i) => i !== todoIndex);
-    this.setState({ todos: nextTodos });
+  private handleRemoveTodo(item: TodoListItem) {
+    this.props.fetchRemoveTodo([item.id!]);
   }
 
   render() {
+    const todoHeader = () => {
+      if (!this.props.todoStatistics) return null;
+
+      const { total, complete } = this.props.todoStatistics;
+
+      return (
+        <TodoHeader>
+          <h3>TODO LIST</h3>
+          <div>
+            <div>전체: {total}개</div>
+            <div>완료: {complete}개</div>
+            <div>미완료: {total - complete}개</div>
+          </div>
+        </TodoHeader>
+      );
+    };
     return (
       <Box>
         <HeaderMenu>
           <InputText type="text" value={this.state.text} onChange={this.handleChangeValue} />
-          <MyButton onClick={this.handleTodoAdd}>add</MyButton>
+          <MyButton onClick={this.handleAddTodo}>add</MyButton>
         </HeaderMenu>
         <TodoListBox>
           <List
             size="small"
-            header={<div>TODO LIST</div>}
+            header={todoHeader()}
             bordered
-            dataSource={this.state.todos}
-            renderItem={(item, i) => (
+            dataSource={this.props.todoList}
+            renderItem={(item) => (
               <List.Item>
                 <TodoItem>
                   <div>{item.text}</div>
                   <div>
                     <Checkbox
                       checked={!!item.complete}
-                      onChange={(e) => this.handleChangeTodo(e, i)}
+                      onChange={(e) => this.handleChangeTodo(e, item)}
                     >
                       {item.complete ? '완료' : '미완료'}
                     </Checkbox>
@@ -150,7 +185,7 @@ class TodoList extends Component<ITodoListProps, ITodoListState> {
                       type="text"
                       icon={<CloseOutlined />}
                       size="small"
-                      onClick={() => this.handleRemoveTodo(i)}
+                      onClick={() => this.handleRemoveTodo(item)}
                     />
                   </div>
                 </TodoItem>
@@ -163,4 +198,20 @@ class TodoList extends Component<ITodoListProps, ITodoListState> {
   }
 }
 
-export default TodoList;
+const mapStateToProps = ({ todo }: ConnectState) => ({
+  ...todo,
+  todoStatistics: {
+    total: todo.todoList.length,
+    complete: todo.todoList.filter((item) => item.complete).length,
+  },
+});
+const mapDispatchToProps = (dispatch: Dispatch) => {
+  return {
+    fetchTodoList: () => dispatch({ type: 'todo/fetchTodoList' }),
+    fetchAddTodo: (item: TodoListItem) => dispatch({ type: 'todo/fetchAddTodo', payload: item }),
+    fetchUpdateTodo: (item: TodoListItem) =>
+      dispatch({ type: 'todo/fetchUpdateTodo', payload: item }),
+    fetchRemoveTodo: (id: number[]) => dispatch({ type: 'todo/fetchRemoveTodo', payload: id }),
+  };
+};
+export default connect(mapStateToProps, mapDispatchToProps)(TodoList);

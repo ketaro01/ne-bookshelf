@@ -34,18 +34,18 @@ const postTodoList = (req: Request, res: Response, u: string, b: Request) => {
   }
 
   const body = (b && b.body) || req.body;
-  const { method, data, id } = body;
+  const { method, ids, id, text, complete } = body;
+  const data = { id, text, complete };
 
   switch (method) {
-    /* eslint no-case-declarations:0 */
     case 'delete':
-      todoList = todoList.filter((item) => id.indexOf(item.id) === -1);
+      todoList = todoList.filter((item) => ids.indexOf(item.id) === -1);
       break;
     case 'post':
       (() => {
         const newTodo = {
-          id: todoList.length,
           ...data,
+          id: todoList.length,
         };
         todoList.unshift(newTodo);
         return res.json(newTodo);

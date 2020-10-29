@@ -4,13 +4,14 @@ import { getTodoList, addTodo, removeTodo, updateTodo } from '@/pages/todoList/s
 
 export interface TodoModelState {
   todoList: TodoListItem[];
+  currentTodo?: object | null;
 }
 
 export interface TodoModelType {
   namespace: 'todo';
   state: TodoModelState;
   effects: {
-    fetchTodoList: Effect;
+    fetchTodoList: [Effect, object];
     fetchAddTodo: Effect;
     fetchRemoveTodo: Effect;
     fetchUpdateTodo: Effect;
@@ -26,38 +27,45 @@ const TodoModel: TodoModelType = {
 
   state: {
     todoList: [],
+    currentTodo: null,
   },
 
   effects: {
-    *fetchTodoList(_, { call, put }) {
-      const response = yield call(getTodoList);
-      yield put({
-        type: 'saveTodoList',
-        payload: response,
-      });
-    },
+    fetchTodoList: [
+      function* (_, { call, put }) {
+        const response = yield call(getTodoList);
+        yield put({
+          type: 'saveTodoList',
+          payload: response,
+        });
+      },
+      {
+        type: 'takeLatest',
+      },
+    ],
     *fetchAddTodo({ payload }, { call, put }) {
-      const response = yield call(addTodo, payload);
+      yield call(addTodo, payload);
       yield put({
-        type: 'saveTodoList',
-        payload: response,
+        type: 'fetchTodoList',
       });
     },
-    *fetchRemoveTodo({ payload }, { call }) {
-      yield call(removeTodo, payload);
-      yield call(this.fetchTodoList);
+    *fetchRemoveTodo({ payload }, { call, put }) {
+      yield call(removeTodo, { ids: payload });
+      yield put({
+        type: 'fetchTodoList',
+      });
     },
     *fetchUpdateTodo({ payload }, { call, put }) {
       const response = yield call(updateTodo, payload);
       yield put({
-        type: 'saveTodoList',
+        type: 'updateTodo',
         payload: response,
       });
     },
   },
 
   reducers: {
-    saveTodoList(state, action) {
+    saveTodoList(state = { todoList: [] }, action) {
       return {
         ...state,
         todoList: action.payload || [],

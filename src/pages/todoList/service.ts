@@ -7,7 +7,7 @@ export async function getTodoList(params?: TodoListParams) {
   });
 }
 
-export async function removeTodo(params: { id: number[] }) {
+export async function removeTodo(params: { ids: number[] }) {
   return request('/api/todo', {
     method: 'POST',
     data: {
