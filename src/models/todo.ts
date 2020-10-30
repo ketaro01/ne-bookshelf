@@ -5,6 +5,10 @@ import { getTodoList, addTodo, removeTodo, updateTodo } from '@/pages/todoList/s
 export interface TodoModelState {
   todoList: TodoListItem[];
   currentTodo?: object | null;
+  todoStatistics: {
+    total: number;
+    complete: number;
+  };
 }
 
 export interface TodoModelType {
@@ -22,13 +26,19 @@ export interface TodoModelType {
   };
 }
 
+const initialState: TodoModelState = {
+  todoList: [],
+  currentTodo: null,
+  todoStatistics: {
+    total: 0,
+    complete: 0,
+  },
+};
+
 const TodoModel: TodoModelType = {
   namespace: 'todo',
 
-  state: {
-    todoList: [],
-    currentTodo: null,
-  },
+  state: initialState,
 
   effects: {
     fetchTodoList: [
@@ -65,13 +75,13 @@ const TodoModel: TodoModelType = {
   },
 
   reducers: {
-    saveTodoList(state = { todoList: [] }, action) {
+    saveTodoList(state = initialState, action) {
       return {
         ...state,
         todoList: action.payload || [],
       };
     },
-    updateTodo(state = { todoList: [] }, action) {
+    updateTodo(state = initialState, action) {
       return {
         ...state,
         todoList: state.todoList.map((item) => {

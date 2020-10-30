@@ -8,6 +8,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import { TodoListItem } from '@/pages/todoList/data';
 import { Dispatch } from 'dva';
+import { getTodoStatistics } from './selectors';
 
 interface ITodoListProps extends TodoModelState {
   fetchTodoList(): void;
@@ -200,10 +201,7 @@ class TodoList extends Component<ITodoListProps, ITodoListState> {
 
 const mapStateToProps = ({ todo }: ConnectState) => ({
   ...todo,
-  todoStatistics: {
-    total: todo.todoList.length,
-    complete: todo.todoList.filter((item) => item.complete).length,
-  },
+  todoStatistics: getTodoStatistics(todo),
 });
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
