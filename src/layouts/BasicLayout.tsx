@@ -62,7 +62,7 @@ const menuDataRender = (menuList: MenuDataItem[]): MenuDataItem[] =>
 
 const defaultFooterDom = (
   <DefaultFooter
-    copyright={`${new Date().getFullYear()} 蚂蚁金服体验技术部出品`}
+    copyright={`${new Date().getFullYear()} KT NexR`}
     links={[
       {
         key: 'Ant Design Pro',
@@ -161,7 +161,13 @@ const BasicLayout: React.FC<BasicLayoutProps> = (props) => {
         {...settings}
       >
         <Authorized authority={authorized!.authority} noMatch={noMatch}>
-          {children}
+          {React.Children.map(children, (child) => {
+            const cProps = { doSomething: 'hello props!' };
+            if (React.isValidElement(child)) {
+              return React.cloneElement(child, cProps);
+            }
+            return child;
+          })}
         </Authorized>
       </ProLayout>
       <SettingDrawer

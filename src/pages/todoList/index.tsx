@@ -199,10 +199,12 @@ class TodoList extends Component<ITodoListProps, ITodoListState> {
   }
 }
 
-const mapStateToProps = ({ todo }: ConnectState) => ({
-  ...todo,
-  todoStatistics: getTodoStatistics(todo),
-});
+const mapStateToProps = ({ todo }: ConnectState) => {
+  return {
+    ...todo,
+    todoStatistics: getTodoStatistics(todo),
+  };
+};
 const mapDispatchToProps = (dispatch: Dispatch) => {
   return {
     fetchTodoList: () => dispatch({ type: 'todo/fetchTodoList' }),

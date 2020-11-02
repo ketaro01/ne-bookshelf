@@ -36,10 +36,20 @@ export default defineConfig({
           authority: ['admin', 'user'],
           routes: [
             {
+              path: '/',
+              redirect: '/todos',
+            },
+            {
               path: '/todos',
               icon: 'form',
               name: 'todos',
               component: './todoList',
+            },
+            {
+              path: '/thread',
+              icon: 'user',
+              name: 'thread',
+              component: './commentThreads',
             },
           ],
         },
