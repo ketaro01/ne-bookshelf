@@ -2,7 +2,10 @@ import { Button, message, notification } from 'antd';
 
 import React from 'react';
 import { useIntl } from 'umi';
+import moment from 'moment';
 import defaultSettings from '../config/defaultSettings';
+
+moment.locale('en');
 
 const { pwa } = defaultSettings;
 
