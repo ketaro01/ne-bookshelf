@@ -1,12 +1,12 @@
 import React from 'react';
 
 // JS
-import moment from 'moment';
 import styled from 'styled-components';
 
 // COMPONENTS
 import ArrowTopDown from '@/pages/commentThreads/components/ArrowTopDown';
 import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
+import CommentItem from '@/pages/commentThreads/components/CommentItem';
 
 interface IPostDetailProps {
   post: {
@@ -15,6 +15,7 @@ interface IPostDetailProps {
     content: string;
     created: string;
   };
+  commentCnt: number;
 }
 
 const PostBox = styled.div`
@@ -25,9 +26,8 @@ const PostBox = styled.div`
     > .content-box {
       padding: 0 10px 10px 30px;
       width: 100%;
-      > .header-info {
-        color: gray;
-        font-size: 12px;
+      .ant-comment-inner {
+        padding-top: 0;
       }
     }
   }
@@ -43,10 +43,11 @@ const PostDetail: React.FC<IPostDetailProps> = ({ post }) => {
       <div className="post-box">
         <ArrowTopDown />
         <div className="content-box">
-          <div className="header-info">
-            Posted by {post.nickName} {moment(post.created).fromNow()}
-          </div>
-          <div>{post.content}</div>
+          <CommentItem
+            actions={[<span key="comment-basic-reply-to">Reply</span>]}
+            content={post.content}
+            created={post.created}
+          />
         </div>
       </div>
       <div style={{ height: 200 }}>
