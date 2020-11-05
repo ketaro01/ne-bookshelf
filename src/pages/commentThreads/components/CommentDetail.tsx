@@ -1,25 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 // JS
 import styled, { css } from 'styled-components';
 import moment from 'moment';
+import { CommentItemType } from '@/pages/commentThreads/data';
 
 // COMPONENTS
 import ArrowTopDown from '@/pages/commentThreads/components/ArrowTopDown';
 import CommentItem from '@/pages/commentThreads/components/CommentItem';
 import { PlusCircleFilled } from '@ant-design/icons';
+import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
 
 interface ICommentProps {
-  commentInfo: {
-    commentId: number;
-    node_path: string | null;
-    depth: number;
-    nickName: string;
-    image?: string | null;
-    userId: string;
-    comment: string;
-    created: string;
-  };
+  commentInfo: CommentItemType;
   changeIndex: (dIndex: number | null, nodePath: string | null) => void;
   clickLine: (nodePath: string | null) => void;
   lineDepth?: {
@@ -27,6 +20,7 @@ interface ICommentProps {
     nodePath: string | null;
   } | null;
   hideComments: object;
+  submit: (submitInfo: object, value: string) => Promise<any>;
 }
 const ThreadLine = styled.div<{ highlight: boolean }>`
   height: 100%;
@@ -79,7 +73,23 @@ const CommentBox = styled.div`
   }
   .comment-box {
     padding: 10px;
+    width: 100%;
   }
+`;
+
+const ReplySpan = styled.span<{ active: boolean }>`
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.25s !important;
+  ${(props) =>
+    props.active &&
+    css`
+      background-color: #ccc;
+    `}
+`;
+
+const CommentAniBox = styled.div`
+  height: 200px;
 `;
 
 const CommentDetail: React.FC<ICommentProps> = ({
@@ -88,8 +98,20 @@ const CommentDetail: React.FC<ICommentProps> = ({
   lineDepth,
   hideComments,
   clickLine,
+  submit,
 }) => {
-  const { comment, commentId, node_path, created, depth, image, nickName } = commentInfo;
+  const [reply, setReply] = useState(false);
+  const {
+    content,
+    commentId,
+    node_path,
+    created,
+    depth,
+    image,
+    nickName,
+    like,
+    dislike,
+  } = commentInfo;
 
   const getPath = (dIndex: number) => {
     const index = dIndex + 1;
@@ -100,6 +122,10 @@ const CommentDetail: React.FC<ICommentProps> = ({
 
   const handleMouseOver = (dIndex: number | null, nodePath: string | null) => {
     changeIndex(dIndex, nodePath);
+  };
+
+  const handleOpenComment = () => {
+    setReply(!reply);
   };
 
   const isHide =
@@ -125,7 +151,7 @@ const CommentDetail: React.FC<ICommentProps> = ({
             );
             return (
               <div key={`arrow_${commentId}_${dIndex}`} className="left-bar">
-                {sameDepth && <ArrowTopDown />}
+                {sameDepth && <ArrowTopDown like={like} dislike={dislike} />}
                 <ThreadLine
                   highlight={highlight}
                   onMouseEnter={() => handleMouseOver(dIndex, path)}
@@ -146,12 +172,29 @@ const CommentDetail: React.FC<ICommentProps> = ({
           ) : (
             <div className="comment-box">
               <CommentItem
-                actions={[<span key="comment-basic-reply-to">Reply</span>]}
+                actions={[
+                  <ReplySpan
+                    key="comment-basic-reply-to"
+                    active={reply}
+                    onClick={handleOpenComment}
+                  >
+                    Reply
+                  </ReplySpan>,
+                ]}
                 author={nickName}
                 avatar={{ image }}
-                content={comment}
+                content={content}
                 created={created}
               />
+              {reply && (
+                <CommentAniBox isActive={reply}>
+                  <QuillEditor
+                    submit={submit}
+                    cancel={() => setReply(false)}
+                    submitInfo={commentInfo}
+                  />
+                </CommentAniBox>
+              )}
             </div>
           )}
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 
 // JS
 import styled from 'styled-components';
+import { PostItemType } from '@/pages/commentThreads/data';
 
 // COMPONENTS
 import ArrowTopDown from '@/pages/commentThreads/components/ArrowTopDown';
@@ -9,13 +10,9 @@ import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
 import CommentItem from '@/pages/commentThreads/components/CommentItem';
 
 interface IPostDetailProps {
-  post: {
-    title: string;
-    nickName: string;
-    content: string;
-    created: string;
-  };
+  post: PostItemType;
   commentCnt: number;
+  submit: (submitInfo: object, value: string) => Promise<any>;
 }
 
 const PostBox = styled.div`
@@ -33,25 +30,18 @@ const PostBox = styled.div`
   }
 `;
 
-const PostDetail: React.FC<IPostDetailProps> = ({ post }) => {
-  const onChangeValue = (value: string) => {
-    console.log(value);
-  };
+const PostDetail: React.FC<IPostDetailProps> = ({ post, submit }) => {
   return (
     <PostBox>
       <h2>{post.title}</h2>
       <div className="post-box">
-        <ArrowTopDown />
+        <ArrowTopDown like={post.like} dislike={post.dislike} />
         <div className="content-box">
-          <CommentItem
-            actions={[<span key="comment-basic-reply-to">Reply</span>]}
-            content={post.content}
-            created={post.created}
-          />
+          <CommentItem actions={[]} content={post.content} created={post.created} />
         </div>
       </div>
       <div style={{ height: 200 }}>
-        <QuillEditor changeValue={onChangeValue} />
+        <QuillEditor submit={submit} submitInfo={post} />
       </div>
     </PostBox>
   );

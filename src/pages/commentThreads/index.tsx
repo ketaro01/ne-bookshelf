@@ -1,133 +1,31 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
+// COMPONENTS
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Divider } from 'antd';
 import CommentDetail from '@/pages/commentThreads/components/CommentDetail';
 import PostDetail from '@/pages/commentThreads/components/PostDetail';
+import { getPost } from '@/pages/commentThreads/service';
 
 interface IGuestBookProps {}
 
 const defaultProps: IGuestBookProps = {};
-const MockData = {
-  post: {
-    userId: 'liamyoon',
-    nickName: 'liamyoon',
-    title: 'kt nexr thread post',
-    content: 'kt nexr thread content',
-    created: '2020-11-01T21:21:41.052Z',
-  },
-  comments: [
-    {
-      commentId: 1,
-      commentParentId: null,
-      comment: 'Thread Start!',
-      node_path: '1',
-      depth: 1,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 3,
-      commentParentId: 1,
-      comment: 'Thread 1.3!!',
-      node_path: '1.3',
-      depth: 2,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 4,
-      commentParentId: 1,
-      comment: 'Thread 1.4!!',
-      node_path: '1.4',
-      depth: 2,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 5,
-      commentParentId: 4,
-      comment: 'Thread 4.5!!',
-      node_path: '1.4.5',
-      depth: 3,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 2,
-      commentParentId: null,
-      comment: 'Thread Two Start!',
-      node_path: '2',
-      depth: 1,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 6,
-      commentParentId: 2,
-      comment: 'Thread 2.6 Start!',
-      node_path: '2.6',
-      depth: 2,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 8,
-      commentParentId: 6,
-      comment: 'Thread 2.6.8 Start!',
-      node_path: '2.6.8',
-      depth: 3,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 9,
-      commentParentId: 8,
-      comment: 'Thread 2.6.8.9 Start!',
-      node_path: '2.6.8.9',
-      depth: 4,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 10,
-      commentParentId: 9,
-      comment: 'Thread 2.6.8.9.10 Start!',
-      node_path: '2.6.8.9.10',
-      depth: 5,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-    {
-      commentId: 7,
-      commentParentId: 2,
-      comment: 'Thread 2.7 Start!',
-      node_path: '2.7',
-      depth: 2,
-      created: '2020-11-02T21:21:41.052Z',
-    },
-  ],
-};
-const randomName = [
-  'Diane Jerosch',
-  'Orlando Farney',
-  'Marcos Skally',
-  'Vincent',
-  'Varndall',
-  'Klimek',
-  'Liam',
-];
-const randomUserId = [
-  'a1234',
-  'auTestas',
-  'acascas2',
-  'cnclksanl',
-  'rhdgurwns',
-  'yapyap30',
-  'limaaa',
-];
-MockData.comments = MockData.comments.map((item) => {
-  return {
-    ...item,
-    nickName: randomName[Math.floor(Math.random() * randomName.length)],
-    userId: randomUserId[Math.floor(Math.random() * randomUserId.length)],
-    image:
-      'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
-  };
-});
 
-const CommentThreads: React.FC<IGuestBookProps> = () => {
-  const { post, comments } = MockData;
+const CommentThreads: React.FC<IGuestBookProps> = ({ match }) => {
+  const post = {};
+  const comments = [];
+
+  const loadData = async () => {
+    const { postId } = match.params;
+    if (!postId) return;
+    const res = await getPost(postId);
+    console.log(res);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const [hideComments, setHideComments] = useState({});
   const [lineDepth, setLineDepth] = useState<{
     dIndex: number | null;
@@ -160,10 +58,21 @@ const CommentThreads: React.FC<IGuestBookProps> = () => {
     setHideComments(nextHideComments);
   };
 
+  const onClickSubmit = async (submitInfo: object, value: string) => {
+    const res = await new Promise((resolve) => {
+      setTimeout(() => {
+        console.log(value);
+        resolve(true);
+      }, 1000);
+    });
+
+    return res;
+  };
+
   return (
     <PageContainer>
       <Card>
-        <PostDetail post={post} commentCnt={comments.length} />
+        <PostDetail post={post} commentCnt={comments.length} submit={onClickSubmit} />
         <Divider />
         {comments.map((item: any) => (
           <CommentDetail
@@ -173,6 +82,7 @@ const CommentThreads: React.FC<IGuestBookProps> = () => {
             clickLine={handleClickLine}
             lineDepth={lineDepth}
             hideComments={hideComments}
+            submit={onClickSubmit}
           />
         ))}
       </Card>
