@@ -23,5 +23,6 @@
       "@@/*": ["./src/.umi/*"]
     }
   },
-  "exclude": ["node_modules", "build", "dist", "scripts", "src/.umi/*", "webpack", "jest"]
+  "exclude": ["node_modules", "build", "dist", "scripts", "src/.umi/*", "webpack", "jest"],
+  "include": ["src", ".eslintrc.js"]
 }
