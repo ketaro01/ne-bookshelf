@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import * as R from 'ramda';
+import { CommentItemType } from '@/pages/commentThreads/data';
 
 const postList = [
   {
@@ -128,8 +130,6 @@ commentList = commentList.map((item) => {
   };
 });
 
-console.log(commentList.length);
-
 const getPost = (req: Request, res: Response) => {
   const { postId } = req.params;
   const data = postList.find((item) => item.postId === parseInt(postId, 10));
@@ -139,6 +139,87 @@ const getPost = (req: Request, res: Response) => {
   return res.json(data);
 };
 
+const getCommentList = (req: Request, res: Response) => {
+  const { postId } = req.params;
+  if (!postId) return res.status(400).json({ error: 'invalid postId' });
+  const list = R.pipe(
+    R.filter(R.propEq('commentParentId', parseInt(postId, 10))),
+    R.sortBy(R.prop('node_path')),
+  )(commentList);
+
+  return res.json(list);
+};
+
+const postComment = (req: Request, res: Response): void => {
+  switch (req.method) {
+    case 'POST':
+      (() => {
+        let item: CommentItemType = req.body;
+        if (!item || !item.commentParentId)
+          return res.status(400).json({ error: 'invalid parameters' });
+        const maxId = Math.max(...R.map(R.prop('commentId'))(commentList));
+        item.commentId = maxId ? maxId + 1 : 0;
+        item = {
+          ...item,
+          node_path: item.node_path
+            ? `${item.node_path}.${item.commentId}`
+            : String(item.commentId),
+          depth: item.depth ? item.depth + 1 : 1,
+          image:
+            'https://gw.alipayobjects.com/zos/antfincdn/efFD%24IOql2/weixintupian_20170331104822.jpg',
+          like: 0,
+          dislike: 0,
+        };
+
+        commentList.push(item);
+
+        return res.json(item);
+      })();
+      return;
+    case 'DELETE':
+      (() => {
+        const { commentId } = req.params;
+        if (!commentId) return res.status(400).json({ error: 'invalid parameters' });
+
+        const itemIndex = R.findIndex(R.propEq('commentId', parseInt(commentId, 10)))(commentList);
+        if (itemIndex < 0) return res.status(404).json({ error: 'not find item' });
+
+        const nextList = R.filter(R.compose(R.not, R.propEq('commentId', parseInt(commentId, 10))))(
+          commentList,
+        );
+        if (nextList) commentList = nextList;
+
+        return res.json({ success: true });
+      })();
+      return;
+    case 'PUT':
+      (() => {
+        const { commentId } = req.params;
+        const item: CommentItemType = req.body;
+
+        if (!commentId || !item) return res.status(400).json({ error: 'invalid parameters' });
+
+        const itemIndex = R.findIndex(R.propEq('commentId', parseInt(commentId, 10)))(commentList);
+        if (itemIndex < 0) return res.status(404).json({ error: 'not find item' });
+
+        commentList[itemIndex] = {
+          ...commentList[itemIndex],
+          ...item,
+        };
+
+        return res.json({ success: true });
+      })();
+      return;
+    default:
+      break;
+  }
+  res.status(500);
+};
+
 export default {
   'GET /api/thread/post/:postId': getPost,
+  'GET /api/thread/comment/:postId': getCommentList,
+  'POST /api/thread/comment': postComment,
+  'DELETE /api/thread/comment/:commentId': postComment,
+  'PUT /api/thread/comment/:commentId': postComment,
 };

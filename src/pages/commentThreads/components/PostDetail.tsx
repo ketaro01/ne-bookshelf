@@ -20,6 +20,7 @@ const PostBox = styled.div`
     display: flex;
     position: relative;
     width: 100%;
+    min-height: 100px;
     > .content-box {
       padding: 0 10px 10px 30px;
       width: 100%;

@@ -3,6 +3,7 @@ import { GlobalModelState } from './global';
 import { UserModelState } from './user';
 import { StateType } from './login';
 import { TodoModelState } from './todo';
+import { ThreadModelState } from './thread';
 
 export { GlobalModelState, UserModelState };
 
@@ -16,6 +17,7 @@ export interface Loading {
     user?: boolean;
     login?: boolean;
     todo?: boolean;
+    thread?: boolean;
   };
 }
 
@@ -26,6 +28,7 @@ export interface ConnectState {
   user: UserModelState;
   login: StateType;
   todo: TodoModelState;
+  thread: ThreadModelState;
 }
 
 export interface Route extends MenuDataItem {

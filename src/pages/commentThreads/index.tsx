@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from 'react';
+import { connect, useDispatch } from 'umi';
+import { ConnectState } from '@/models/connect';
 
 // COMPONENTS
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Divider } from 'antd';
 import CommentDetail from '@/pages/commentThreads/components/CommentDetail';
 import PostDetail from '@/pages/commentThreads/components/PostDetail';
-import { getPost } from '@/pages/commentThreads/service';
+import { CommentItemType, PostItemType } from '@/pages/commentThreads/data';
 
-interface IGuestBookProps {}
+interface IGuestBookProps {
+  commentList: CommentItemType[];
+  post: PostItemType;
+  match: any;
+}
 
-const defaultProps: IGuestBookProps = {};
-
-const CommentThreads: React.FC<IGuestBookProps> = ({ match }) => {
-  const post = {};
-  const comments = [];
-
+const CommentThreads: React.FC<IGuestBookProps> = ({ commentList, post, match }) => {
+  const dispatch = useDispatch();
   const loadData = async () => {
     const { postId } = match.params;
     if (!postId) return;
-    const res = await getPost(postId);
-    console.log(res);
+    await dispatch({ type: 'thread/fetchGetPost', payload: { postId } });
+    await dispatch({ type: 'thread/fetchGetCommentList', payload: { postId } });
   };
 
   useEffect(() => {
@@ -72,24 +74,33 @@ const CommentThreads: React.FC<IGuestBookProps> = ({ match }) => {
   return (
     <PageContainer>
       <Card>
-        <PostDetail post={post} commentCnt={comments.length} submit={onClickSubmit} />
+        <PostDetail
+          post={post}
+          commentCnt={commentList && commentList.length}
+          submit={onClickSubmit}
+        />
         <Divider />
-        {comments.map((item: any) => (
-          <CommentDetail
-            key={item.commentId}
-            commentInfo={item}
-            changeIndex={handleChangeIndex}
-            clickLine={handleClickLine}
-            lineDepth={lineDepth}
-            hideComments={hideComments}
-            submit={onClickSubmit}
-          />
-        ))}
+        {commentList &&
+          commentList.map((item: any) => (
+            <CommentDetail
+              key={item.commentId}
+              commentInfo={item}
+              changeIndex={handleChangeIndex}
+              clickLine={handleClickLine}
+              lineDepth={lineDepth}
+              hideComments={hideComments}
+              submit={onClickSubmit}
+            />
+          ))}
       </Card>
     </PageContainer>
   );
 };
 
-CommentThreads.defaultProps = defaultProps;
-
-export default CommentThreads;
+// @ts-ignore
+export default connect(
+  ({ thread }: ConnectState) => ({
+    ...thread,
+  }),
+  () => {},
+)(CommentThreads);

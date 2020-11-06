@@ -10,7 +10,7 @@ export interface PostItemType {
 }
 
 export interface CommentItemType extends PostItemType {
-  commentId: number;
+  commentId?: number;
   commentParentId?: number | null;
   node_path: string;
   depth: number;

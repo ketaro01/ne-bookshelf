@@ -47,16 +47,10 @@ export default defineConfig({
               component: './todoList',
             },
             {
-              path: '/thread1',
+              path: '/thread',
               name: 'thread',
               icon: 'user',
               redirect: '/thread/1',
-            },
-            {
-              path: '/thread2',
-              name: 'thread',
-              icon: 'user',
-              redirect: '/thread/2',
             },
             {
               path: '/thread/:postId',
