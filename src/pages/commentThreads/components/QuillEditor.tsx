@@ -7,10 +7,11 @@ import { Button, Spin } from 'antd';
 
 interface IQuillEditorProps {
   changeValue?: (value: string) => void;
-  submit?: (submitInfo: object, value: string) => Promise<any>;
+  submit?: (submitInfo: any, value: string) => Promise<any>;
   cancel?: (result: boolean) => void;
   submitInfo?: object;
   pending?: boolean;
+  initValue?: string;
 }
 
 const EditorBox = styled.div<{ useSubmit?: boolean }>`
@@ -45,9 +46,10 @@ const QuillEditor: React.FC<IQuillEditorProps> = ({
   cancel,
   pending,
   submitInfo,
+  initValue,
 }) => {
-  const [value, setValue] = useState('');
-  const [submitPending, setSumbitPending] = useState(false);
+  const [value, setValue] = useState(initValue || '');
+  const [submitPending, setSubmitPending] = useState(false);
   const isPending = pending || submitPending;
   const onChangeValue = (content: string): void => {
     if (value === content) return;
@@ -56,7 +58,7 @@ const QuillEditor: React.FC<IQuillEditorProps> = ({
   };
   const onClickSubmit = async (): Promise<void> => {
     if (!submit) return;
-    setSumbitPending(true);
+    setSubmitPending(true);
     try {
       const result = await submit(submitInfo || {}, value);
       if (result) {
@@ -66,7 +68,7 @@ const QuillEditor: React.FC<IQuillEditorProps> = ({
     } catch (e) {
       console.error(e.message);
     } finally {
-      setSumbitPending(false);
+      setSubmitPending(false);
     }
   };
   const onClickCancel = () => {

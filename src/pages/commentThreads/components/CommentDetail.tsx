@@ -20,7 +20,7 @@ interface ICommentProps {
     nodePath: string | null;
   } | null;
   hideComments: object;
-  submit: (submitInfo: object, value: string) => Promise<any>;
+  submit: (submitInfo: CommentItemType, value: string) => Promise<any>;
 }
 const ThreadLine = styled.div<{ highlight: boolean }>`
   height: 100%;
@@ -77,7 +77,7 @@ const CommentBox = styled.div`
   }
 `;
 
-const ReplySpan = styled.span<{ active: boolean }>`
+const ActionSpan = styled.span<{ active?: boolean }>`
   padding: 4px;
   border-radius: 8px;
   transition: all 0.25s !important;
@@ -101,16 +101,19 @@ const CommentDetail: React.FC<ICommentProps> = ({
   submit,
 }) => {
   const [reply, setReply] = useState(false);
+  const [edit, setEdit] = useState(false);
+  const [del, setDel] = useState(false);
+
   const {
     content,
     commentId,
     node_path,
     created,
-    depth,
+    depth = 0,
     image,
     nickName,
-    like,
-    dislike,
+    like = 0,
+    dislike = 0,
   } = commentInfo;
 
   const getPath = (dIndex: number) => {
@@ -124,8 +127,17 @@ const CommentDetail: React.FC<ICommentProps> = ({
     changeIndex(dIndex, nodePath);
   };
 
-  const handleOpenComment = () => {
-    setReply(!reply);
+  const handleOpenComment = (type?: string): void => {
+    if (type === 'replay') {
+      setReply(!reply);
+    }
+    if (type === 'edit') {
+      setEdit(!edit);
+    }
+
+    if (type === 'delete') {
+      setDel(!del);
+    }
   };
 
   const isHide =
@@ -173,21 +185,35 @@ const CommentDetail: React.FC<ICommentProps> = ({
             <div className="comment-box">
               <CommentItem
                 actions={[
-                  <ReplySpan
+                  <ActionSpan
                     key="comment-basic-reply-to"
                     active={reply}
-                    onClick={handleOpenComment}
+                    onClick={() => handleOpenComment('replay')}
                   >
                     Reply
-                  </ReplySpan>,
+                  </ActionSpan>,
+                  <ActionSpan
+                    key="comment-basic-edit-to"
+                    active={edit}
+                    onClick={() => handleOpenComment('edit')}
+                  >
+                    Edit
+                  </ActionSpan>,
+                  <ActionSpan
+                    key="comment-basic-delete-to"
+                    onClick={() => handleOpenComment('delete')}
+                  >
+                    Delete
+                  </ActionSpan>,
                 ]}
+                isEdit={edit}
                 author={nickName}
                 avatar={{ image }}
                 content={content}
                 created={created}
               />
               {reply && (
-                <CommentAniBox isActive={reply}>
+                <CommentAniBox>
                   <QuillEditor
                     submit={submit}
                     cancel={() => setReply(false)}

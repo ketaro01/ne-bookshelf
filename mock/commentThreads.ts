@@ -15,7 +15,7 @@ const postList = [
   },
 ];
 
-let commentList = [
+let commentList: any[] = [
   {
     commentId: 1,
     commentParentId: 1,
@@ -118,7 +118,7 @@ const randomUserId = [
   'limaaa',
 ];
 
-commentList = commentList.map((item) => {
+commentList = commentList.map((item: any) => {
   return {
     ...item,
     nickName: randomName[Math.floor(Math.random() * randomName.length)],
@@ -142,8 +142,9 @@ const getPost = (req: Request, res: Response) => {
 const getCommentList = (req: Request, res: Response) => {
   const { postId } = req.params;
   if (!postId) return res.status(400).json({ error: 'invalid postId' });
-  const list = R.pipe(
-    R.filter(R.propEq('commentParentId', parseInt(postId, 10))),
+  const pId = parseInt(postId, 10);
+  const list = (<any>R.pipe)(
+    R.filter(R.propEq('commentParentId', pId)),
     R.sortBy(R.prop('node_path')),
   )(commentList);
 
@@ -157,7 +158,8 @@ const postComment = (req: Request, res: Response): void => {
         let item: CommentItemType = req.body;
         if (!item || !item.commentParentId)
           return res.status(400).json({ error: 'invalid parameters' });
-        const maxId = Math.max(...R.map(R.prop('commentId'))(commentList));
+        const list: number[] = R.map(R.prop('commentId'))(commentList);
+        const maxId = Math.max(...list);
         item.commentId = maxId ? maxId + 1 : 0;
         item = {
           ...item,
@@ -218,8 +220,8 @@ const postComment = (req: Request, res: Response): void => {
 
 export default {
   'GET /api/thread/post/:postId': getPost,
-  'GET /api/thread/comment/:postId': getCommentList,
-  'POST /api/thread/comment': postComment,
-  'DELETE /api/thread/comment/:commentId': postComment,
-  'PUT /api/thread/comment/:commentId': postComment,
+  'GET /api/thread/comments/:postId': getCommentList,
+  'POST /api/thread/comments': postComment,
+  'DELETE /api/thread/comments/:commentId': postComment,
+  'PUT /api/thread/comments/:commentId': postComment,
 };

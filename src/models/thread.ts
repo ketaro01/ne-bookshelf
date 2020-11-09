@@ -5,10 +5,11 @@ import {
   getCommentList,
   createComment,
   deleteComment,
+  updateComment,
 } from '@/pages/commentThreads/service';
 
 export interface ThreadModelState {
-  post: PostItemType | {};
+  post?: PostItemType;
   commentList: CommentItemType[];
 }
 
@@ -25,12 +26,13 @@ export interface ThreadModelType {
   reducers: {
     updatePost: Reducer;
     updateCommentList: Reducer;
+    updateComment: Reducer;
   };
 }
 
 const initialState: ThreadModelState = {
   commentList: [],
-  post: {},
+  post: undefined,
 };
 
 const ThreadModel: ThreadModelType = {
@@ -40,24 +42,58 @@ const ThreadModel: ThreadModelType = {
 
   effects: {
     *fetchGetPost({ payload }, { call, put }) {
-      const response = yield call(getPost, payload.postId);
+      const { response, error } = yield call(getPost, payload.postId);
+
+      if (error) return;
+
       yield put({
         type: 'updatePost',
         payload: response,
       });
     },
-    *fetchGetCommentList({ payload }, { call, put }) {
-      const response = yield call(getCommentList, payload.postId);
-      if (response.status !== 200) return;
+    *fetchGetCommentList({ payload }, { call, put }): object | null {
+      const { response, error } = yield call(getCommentList, payload.postId);
+
+      if (error) return null;
+
       yield put({
         type: 'updateCommentList',
         payload: response,
       });
+
+      return response;
     },
 
-    *fetchCreateComment({ payload }, { call, put }) {},
-    *fetchDeleteComment({ payload }, { call, put }) {},
-    *fetchUpdateComment({ payload }, { call, put }) {},
+    *fetchCreateComment({ payload }, { call, put }): object | null {
+      const { error } = yield call(createComment, payload);
+
+      if (error) return null;
+
+      return yield put({
+        type: 'fetchGetCommentList',
+        payload: { postId: payload.commentParentId },
+      });
+    },
+    *fetchDeleteComment({ payload }, { call, put }) {
+      const { error } = yield call(deleteComment, payload.commentId);
+
+      if (error) return;
+
+      yield put({
+        type: 'fetchGetCommentList',
+        payload: { postId: payload.commentParentId },
+      });
+    },
+    *fetchUpdateComment({ payload }, { call, put }) {
+      const { response, error } = yield call(updateComment, payload.commentId);
+
+      if (error) return;
+
+      yield put({
+        type: 'updateComment',
+        payload: response,
+      });
+    },
   },
 
   reducers: {
@@ -76,7 +112,7 @@ const ThreadModel: ThreadModelType = {
     updateComment(state = initialState, action) {
       return {
         ...state,
-        commentList: state.commentList.map((item) =>
+        commentList: state.commentList.map((item: CommentItemType) =>
           item.commentId === action.payload.commentId ? action.payload : item,
         ),
       };

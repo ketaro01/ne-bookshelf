@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { RouteComponentProps } from 'react-router-dom';
 import { connect, useDispatch } from 'umi';
 import { ConnectState } from '@/models/connect';
 
@@ -7,15 +8,19 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Divider } from 'antd';
 import CommentDetail from '@/pages/commentThreads/components/CommentDetail';
 import PostDetail from '@/pages/commentThreads/components/PostDetail';
-import { CommentItemType, PostItemType } from '@/pages/commentThreads/data';
+import { ThreadModelState } from '@/models/thread';
+import { CurrentUser } from '@/models/user';
+import { CommentItemType } from '@/pages/commentThreads/data';
 
-interface IGuestBookProps {
-  commentList: CommentItemType[];
-  post: PostItemType;
-  match: any;
+interface MatchParams {
+  postId: string;
 }
 
-const CommentThreads: React.FC<IGuestBookProps> = ({ commentList, post, match }) => {
+interface ICommentThreads extends RouteComponentProps<MatchParams>, Partial<ThreadModelState> {
+  currentUser?: Partial<CurrentUser>;
+}
+
+const CommentThreads: React.FC<ICommentThreads> = ({ commentList, post, currentUser, match }) => {
   const dispatch = useDispatch();
   const loadData = async () => {
     const { postId } = match.params;
@@ -60,15 +65,26 @@ const CommentThreads: React.FC<IGuestBookProps> = ({ commentList, post, match })
     setHideComments(nextHideComments);
   };
 
-  const onClickSubmit = async (submitInfo: object, value: string) => {
-    const res = await new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(value);
-        resolve(true);
-      }, 1000);
-    });
+  const onClickSubmit = async (submitInfo: CommentItemType, value: string): Promise<boolean> => {
+    if (!submitInfo) return false;
 
-    return res;
+    try {
+      const user = currentUser || {};
+      const submitComment: CommentItemType = {
+        content: value,
+        commentParentId: submitInfo.postId || submitInfo.commentParentId,
+        nickName: user.name!,
+        userId: user.userid!,
+        node_path: submitInfo.node_path,
+        depth: submitInfo.depth,
+      };
+
+      const result = await dispatch({ type: 'thread/fetchCreateComment', payload: submitComment });
+
+      return !!result;
+    } catch (e) {
+      return false;
+    }
   };
 
   return (
@@ -76,7 +92,7 @@ const CommentThreads: React.FC<IGuestBookProps> = ({ commentList, post, match })
       <Card>
         <PostDetail
           post={post}
-          commentCnt={commentList && commentList.length}
+          commentCnt={commentList ? commentList.length : 0}
           submit={onClickSubmit}
         />
         <Divider />
@@ -97,10 +113,8 @@ const CommentThreads: React.FC<IGuestBookProps> = ({ commentList, post, match })
   );
 };
 
-// @ts-ignore
-export default connect(
-  ({ thread }: ConnectState) => ({
-    ...thread,
-  }),
-  () => {},
-)(CommentThreads);
+export default connect(({ thread, user }: ConnectState) => ({
+  commentList: thread.commentList,
+  post: thread.post,
+  currentUser: user.currentUser,
+}))(CommentThreads);

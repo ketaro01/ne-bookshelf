@@ -4,6 +4,7 @@
  */
 import { extend } from 'umi-request';
 import { notification } from 'antd';
+import CustomError from '@/utils/CustomError';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -26,7 +27,7 @@ const codeMessage = {
 /**
  * 异常处理程序
  */
-const errorHandler = (error: { response: Response }): Response => {
+const errorHandler = (error: { response: Response }): void => {
   const { response } = error;
   if (response && response.status) {
     const errorText = codeMessage[response.status] || response.statusText;
@@ -42,7 +43,8 @@ const errorHandler = (error: { response: Response }): Response => {
       message: '网络异常',
     });
   }
-  return response;
+
+  throw new CustomError({ response });
 };
 
 /**
