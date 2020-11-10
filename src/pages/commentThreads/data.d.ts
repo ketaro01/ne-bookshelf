@@ -8,6 +8,7 @@ export interface PostItemType {
   created?: string;
   like?: number;
   dislike?: number;
+  isDeleted?: boolean;
 }
 
 export interface CommentItemType extends PostItemType {

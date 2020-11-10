@@ -186,12 +186,27 @@ const postComment = (req: Request, res: Response): void => {
         const itemIndex = R.findIndex(R.propEq('commentId', parseInt(commentId, 10)))(commentList);
         if (itemIndex < 0) return res.status(404).json({ error: 'not find item' });
 
-        const nextList = R.filter(R.compose(R.not, R.propEq('commentId', parseInt(commentId, 10))))(
-          commentList,
-        );
-        if (nextList) commentList = nextList;
+        // const nextList = R.filter(R.compose(R.not, R.propEq('commentId', parseInt(commentId, 10))))(
+        //   commentList,
+        // );
+        // if (nextList) commentList = nextList;
 
-        return res.json({ success: true });
+        const deleteItem = {
+          isDeleted: true,
+        };
+        Object.keys(commentList[itemIndex]).forEach((key) => {
+          if (!/^(commentId|commentParentId|node_path|depth|content)$/.test(key)) {
+            deleteItem[key] = '';
+          } else if (key === 'content') {
+            deleteItem[key] = '삭제된 코멘트 입니다.';
+          } else {
+            deleteItem[key] = commentList[itemIndex][key];
+          }
+        });
+
+        commentList[itemIndex] = deleteItem;
+
+        return res.json(commentList[itemIndex]);
       })();
       return;
     case 'PUT':
@@ -209,7 +224,7 @@ const postComment = (req: Request, res: Response): void => {
           ...item,
         };
 
-        return res.json({ success: true });
+        return res.json(commentList[itemIndex]);
       })();
       return;
     default:

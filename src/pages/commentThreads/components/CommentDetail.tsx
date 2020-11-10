@@ -10,6 +10,8 @@ import ArrowTopDown from '@/pages/commentThreads/components/ArrowTopDown';
 import CommentItem from '@/pages/commentThreads/components/CommentItem';
 import { PlusCircleFilled } from '@ant-design/icons';
 import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
+import ConfirmModal from '@/pages/commentThreads/components/ConfirmModal';
+import { notification } from 'antd';
 
 interface ICommentProps {
   commentInfo: CommentItemType;
@@ -20,7 +22,9 @@ interface ICommentProps {
     nodePath: string | null;
   } | null;
   hideComments: object;
-  submit: (submitInfo: CommentItemType, value: string) => Promise<any>;
+  submitComment: (submitInfo: CommentItemType, value: string) => Promise<any>;
+  updateComment: (submitInfo: CommentItemType, value: string) => Promise<any>;
+  deleteComment: (commentInfo: CommentItemType) => Promise<any>;
 }
 const ThreadLine = styled.div<{ highlight: boolean }>`
   height: 100%;
@@ -98,7 +102,9 @@ const CommentDetail: React.FC<ICommentProps> = ({
   lineDepth,
   hideComments,
   clickLine,
-  submit,
+  submitComment,
+  updateComment,
+  deleteComment,
 }) => {
   const [reply, setReply] = useState(false);
   const [edit, setEdit] = useState(false);
@@ -138,6 +144,23 @@ const CommentDetail: React.FC<ICommentProps> = ({
     if (type === 'delete') {
       setDel(!del);
     }
+  };
+
+  const handleUpdate = async (submitInfo: CommentItemType, value: string) => {
+    const result = await updateComment(submitInfo, value);
+    if (result) setEdit(false);
+  };
+
+  const handleDelete = async () => {
+    if (!commentInfo) {
+      notification.warn({
+        message: '경고',
+        description: '필수정보 "commentId" 가 존재하지 않습니다.',
+      });
+      return;
+    }
+
+    await deleteComment(commentInfo);
   };
 
   const isHide =
@@ -184,38 +207,44 @@ const CommentDetail: React.FC<ICommentProps> = ({
           ) : (
             <div className="comment-box">
               <CommentItem
-                actions={[
-                  <ActionSpan
-                    key="comment-basic-reply-to"
-                    active={reply}
-                    onClick={() => handleOpenComment('replay')}
-                  >
-                    Reply
-                  </ActionSpan>,
-                  <ActionSpan
-                    key="comment-basic-edit-to"
-                    active={edit}
-                    onClick={() => handleOpenComment('edit')}
-                  >
-                    Edit
-                  </ActionSpan>,
-                  <ActionSpan
-                    key="comment-basic-delete-to"
-                    onClick={() => handleOpenComment('delete')}
-                  >
-                    Delete
-                  </ActionSpan>,
-                ]}
+                actions={
+                  !commentInfo.isDeleted
+                    ? [
+                        <ActionSpan
+                          key="comment-basic-reply-to"
+                          active={reply}
+                          onClick={() => handleOpenComment('replay')}
+                        >
+                          코멘트
+                        </ActionSpan>,
+                        <ActionSpan
+                          key="comment-basic-edit-to"
+                          active={edit}
+                          onClick={() => handleOpenComment('edit')}
+                        >
+                          수정
+                        </ActionSpan>,
+                        <ActionSpan
+                          key="comment-basic-delete-to"
+                          onClick={() => handleOpenComment('delete')}
+                        >
+                          삭제
+                        </ActionSpan>,
+                      ]
+                    : []
+                }
                 isEdit={edit}
                 author={nickName}
                 avatar={{ image }}
                 content={content}
                 created={created}
+                commentInfo={commentInfo}
+                update={handleUpdate}
               />
               {reply && (
                 <CommentAniBox>
                   <QuillEditor
-                    submit={submit}
+                    submit={submitComment}
                     cancel={() => setReply(false)}
                     submitInfo={commentInfo}
                   />
@@ -225,6 +254,18 @@ const CommentDetail: React.FC<ICommentProps> = ({
           )}
         </div>
       )}
+      <ConfirmModal
+        openModal={del}
+        modalInfo={{
+          title: '코멘트 삭제',
+          okText: '삭제',
+          cancelText: '취소',
+          onClickOk: handleDelete,
+          onClickCancel: () => setDel(false),
+        }}
+      >
+        해당 코멘트를 삭제하시겠습니까?
+      </ConfirmModal>
     </CommentBox>
   );
 };

@@ -75,21 +75,21 @@ const ThreadModel: ThreadModelType = {
       });
     },
     *fetchDeleteComment({ payload }, { call, put }) {
-      const { error } = yield call(deleteComment, payload.commentId);
+      const { response, error } = yield call(deleteComment, payload.commentId);
 
       if (error) return;
 
       yield put({
-        type: 'fetchGetCommentList',
-        payload: { postId: payload.commentParentId },
+        type: 'updateComment',
+        payload: response,
       });
     },
-    *fetchUpdateComment({ payload }, { call, put }) {
-      const { response, error } = yield call(updateComment, payload.commentId);
+    *fetchUpdateComment({ payload }, { call, put }): object | null {
+      const { response, error } = yield call(updateComment, payload);
 
-      if (error) return;
+      if (error) return null;
 
-      yield put({
+      return yield put({
         type: 'updateComment',
         payload: response,
       });

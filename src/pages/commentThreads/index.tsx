@@ -83,31 +83,66 @@ const CommentThreads: React.FC<ICommentThreads> = ({ commentList, post, currentU
 
       return !!result;
     } catch (e) {
+      console.log(e.message);
       return false;
     }
   };
 
+  const onClickUpdate = async (submitInfo: CommentItemType, value: string): Promise<boolean> => {
+    if (!submitInfo) return false;
+
+    try {
+      const submitComment: object = {
+        commentId: submitInfo.commentId,
+        content: value,
+      };
+
+      const result = await dispatch({ type: 'thread/fetchUpdateComment', payload: submitComment });
+
+      return !!result;
+    } catch (e) {
+      console.log(e.message);
+      return false;
+    }
+  };
+
+  const onClickDelete = async (commentInfo: CommentItemType): Promise<void> => {
+    const { commentId, commentParentId } = commentInfo;
+    if (!commentId || !commentParentId) return;
+
+    try {
+      await dispatch({
+        type: 'thread/fetchDeleteComment',
+        payload: {
+          commentId,
+          commentParentId,
+        },
+      });
+    } catch (e) {
+      console.log(e.message);
+    }
+  };
+
+  const renderCommentList = commentList || [];
+
   return (
     <PageContainer>
       <Card>
-        <PostDetail
-          post={post}
-          commentCnt={commentList ? commentList.length : 0}
-          submit={onClickSubmit}
-        />
+        <PostDetail post={post} commentCnt={renderCommentList.length} submit={onClickSubmit} />
         <Divider />
-        {commentList &&
-          commentList.map((item: any) => (
-            <CommentDetail
-              key={item.commentId}
-              commentInfo={item}
-              changeIndex={handleChangeIndex}
-              clickLine={handleClickLine}
-              lineDepth={lineDepth}
-              hideComments={hideComments}
-              submit={onClickSubmit}
-            />
-          ))}
+        {renderCommentList.map((item: any) => (
+          <CommentDetail
+            key={item.commentId}
+            commentInfo={item}
+            changeIndex={handleChangeIndex}
+            clickLine={handleClickLine}
+            lineDepth={lineDepth}
+            hideComments={hideComments}
+            submitComment={onClickSubmit}
+            updateComment={onClickUpdate}
+            deleteComment={onClickDelete}
+          />
+        ))}
       </Card>
     </PageContainer>
   );

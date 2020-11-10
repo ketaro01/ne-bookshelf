@@ -25,14 +25,18 @@ export async function createComment(params: object | null) {
 }
 
 export async function deleteComment(commentId: string | number) {
-  return request(`/api/thread/comments/${commentId}`, {
-    method: 'DELETE',
-  });
+  return requestWrap(
+    request(`/api/thread/comments/${commentId}`, {
+      method: 'DELETE',
+    }),
+  );
 }
 
 export async function updateComment(params: CommentItemType) {
-  return request(`/api/thread/comments/${params.commentId}`, {
-    method: 'PUT',
-    data: params,
-  });
+  return requestWrap(
+    request(`/api/thread/comments/${params.commentId}`, {
+      method: 'PUT',
+      data: params,
+    }),
+  );
 }

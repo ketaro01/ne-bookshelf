@@ -2,16 +2,19 @@ import React, { ReactNode } from 'react';
 import { Avatar, Comment, Tooltip } from 'antd';
 import moment from 'moment';
 import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
+import { CommentItemType } from '@/pages/commentThreads/data';
 
 interface ICommentItemProps {
   author?: string;
   avatar?: {
     image?: string | null;
   };
-  isEdit: boolean;
+  isEdit?: boolean;
   content?: string;
   actions?: ReactNode[];
   created?: string;
+  commentInfo?: CommentItemType;
+  update?: (submitInfo: CommentItemType, value: string) => Promise<any>;
 }
 
 const defaultProps: ICommentItemProps = {
@@ -20,21 +23,14 @@ const defaultProps: ICommentItemProps = {
 };
 
 const CommentItem: React.FC<ICommentItemProps> = (props) => {
-  const { isEdit, author, avatar, content, actions, created } = props;
+  const { commentInfo, isEdit, author, avatar, content, actions, created, update } = props;
+
   const mtCreated = created && moment(created);
 
   const ContentBox = () =>
     isEdit ? (
       <div style={{ height: 200 }}>
-        <QuillEditor
-          submit={async (submitInfo: any, value: string) => {
-            console.log(submitInfo, value);
-            return true;
-          }}
-          initValue={content}
-          cancel={() => {}}
-          submitInfo={{}}
-        />
+        <QuillEditor submit={update} initValue={content} submitInfo={commentInfo} />
       </div>
     ) : (
       content && <div dangerouslySetInnerHTML={{ __html: content }} />

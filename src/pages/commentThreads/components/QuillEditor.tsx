@@ -51,29 +51,34 @@ const QuillEditor: React.FC<IQuillEditorProps> = ({
   const [value, setValue] = useState(initValue || '');
   const [submitPending, setSubmitPending] = useState(false);
   const isPending = pending || submitPending;
+
   const onChangeValue = (content: string): void => {
     if (value === content) return;
     if (changeValue) changeValue(content);
     setValue(content);
   };
+
+  const onClickCancel = () => {
+    if (!cancel) return;
+    cancel(true);
+  };
+
   const onClickSubmit = async (): Promise<void> => {
     if (!submit) return;
     setSubmitPending(true);
     try {
       const result = await submit(submitInfo || {}, value);
+      console.log(result);
       if (result) {
         setValue('');
         onChangeValue('');
+        onClickCancel();
       }
     } catch (e) {
       console.error(e.message);
     } finally {
       setSubmitPending(false);
     }
-  };
-  const onClickCancel = () => {
-    if (!cancel) return;
-    cancel(true);
   };
 
   return (
