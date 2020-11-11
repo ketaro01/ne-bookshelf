@@ -53,21 +53,21 @@ const Login: React.FC<LoginProps> = (props) => {
 
           <UserName
             name="userName"
-            placeholder="用户名: admin or user"
+            placeholder="id: admin or user"
             rules={[
               {
                 required: true,
-                message: '请输入用户名!',
+                message: '아이디를 확인해주세요.',
               },
             ]}
           />
           <Password
             name="password"
-            placeholder="密码: ant.design"
+            placeholder="password: ant.design"
             rules={[
               {
                 required: true,
-                message: '请输入密码！',
+                message: '비밀번호를 확인해주세요.',
               },
             ]}
           />
@@ -78,28 +78,28 @@ const Login: React.FC<LoginProps> = (props) => {
           )}
           <Mobile
             name="mobile"
-            placeholder="手机号"
+            placeholder="휴대전화 번호"
             rules={[
               {
                 required: true,
-                message: '请输入手机号！',
+                message: '휴대전화 번호를 확인해주세요.',
               },
               {
                 pattern: /^1\d{10}$/,
-                message: '手机号格式错误！',
+                message: '휴대전화 번호를 확인해주세요.',
               },
             ]}
           />
           <Captcha
             name="captcha"
-            placeholder="验证码"
+            placeholder="인증번호"
             countDown={120}
             getCaptchaButtonText=""
             getCaptchaSecondText="秒"
             rules={[
               {
                 required: true,
-                message: '请输入验证码！',
+                message: '인증번호를 입력해주세요.',
               },
             ]}
           />

@@ -131,7 +131,7 @@ const LoginItem: React.FC<LoginItemProps> = (props) => {
                   onGetCaptcha(value);
                 }}
               >
-                {timing ? `${count} 秒` : '获取验证码'}
+                {timing ? `${count} 초` : '인증번호 받기'}
               </Button>
             </Col>
           </Row>
