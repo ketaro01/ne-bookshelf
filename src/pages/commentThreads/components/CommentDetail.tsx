@@ -3,15 +3,15 @@ import React, { useState } from 'react';
 // JS
 import styled, { css } from 'styled-components';
 import moment from 'moment';
+import { notification } from 'antd';
 import { CommentItemType } from '@/pages/commentThreads/data';
 
 // COMPONENTS
-import ArrowTopDown from '@/pages/commentThreads/components/ArrowTopDown';
 import CommentItem from '@/pages/commentThreads/components/CommentItem';
 import { PlusCircleFilled } from '@ant-design/icons';
 import QuillEditor from '@/pages/commentThreads/components/QuillEditor';
 import ConfirmModal from '@/pages/commentThreads/components/ConfirmModal';
-import { notification } from 'antd';
+import DepthLine from '@/pages/commentThreads/components/DepthLine';
 
 interface ICommentProps {
   commentInfo: CommentItemType;
@@ -26,29 +26,6 @@ interface ICommentProps {
   updateComment: (submitInfo: CommentItemType, value: string) => Promise<any>;
   deleteComment: (commentInfo: CommentItemType) => Promise<any>;
 }
-const ThreadLine = styled.div<{ highlight: boolean }>`
-  height: 100%;
-  width: 26px;
-  position: relative;
-  &::after {
-    content: '';
-    width: 2px;
-    height: 100%;
-    background-color: #ddd;
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    transition: background-color 0.25s, width 0.25s;
-    cursor: pointer;
-    ${(props) =>
-      props.highlight &&
-      css`
-        background-color: black;
-        width: 4px;
-      `}
-  }
-`;
 
 const CommentBox = styled.div`
   > div {
@@ -110,24 +87,7 @@ const CommentDetail: React.FC<ICommentProps> = ({
   const [edit, setEdit] = useState(false);
   const [del, setDel] = useState(false);
 
-  const {
-    content,
-    commentId,
-    node_path,
-    created,
-    depth = 0,
-    image,
-    nickName,
-    like = 0,
-    dislike = 0,
-  } = commentInfo;
-
-  const getPath = (dIndex: number) => {
-    const index = dIndex + 1;
-    const splitLength = depth - index;
-    const pathArr = node_path ? node_path.split('.') : [];
-    return pathArr.slice(0, pathArr.length - splitLength).join('.');
-  };
+  const { content, node_path, created, image, nickName } = commentInfo;
 
   const handleMouseOver = (dIndex: number | null, nodePath: string | null) => {
     changeIndex(dIndex, nodePath);
@@ -172,30 +132,13 @@ const CommentDetail: React.FC<ICommentProps> = ({
     <CommentBox>
       {showComment && (
         <div>
-          {new Array(depth).fill('').map((_, dIndex) => {
-            const sameDepth = depth === dIndex + 1;
-            if (isHide && sameDepth) {
-              return null;
-            }
-            const path = getPath(dIndex);
-
-            const highlight = !!(
-              lineDepth &&
-              lineDepth.dIndex === dIndex &&
-              lineDepth.nodePath === path
-            );
-            return (
-              <div key={`arrow_${commentId}_${dIndex}`} className="left-bar">
-                {sameDepth && <ArrowTopDown like={like} dislike={dislike} />}
-                <ThreadLine
-                  highlight={highlight}
-                  onMouseEnter={() => handleMouseOver(dIndex, path)}
-                  onMouseOut={() => handleMouseOver(null, null)}
-                  onClick={() => clickLine(path)}
-                />
-              </div>
-            );
-          })}
+          <DepthLine
+            isHide={isHide}
+            clickLine={clickLine}
+            mouseOver={handleMouseOver}
+            commentInfo={commentInfo}
+            lineDepth={lineDepth}
+          />
           {isHide ? (
             <div className="show-btn-box">
               <PlusCircleFilled className="show-btn" onClick={() => clickLine(isHide)} />
